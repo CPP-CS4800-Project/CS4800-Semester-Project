@@ -10,4 +10,8 @@ def index():
 def food():
     return 'I LOVE WINGS!'
 
+@app.route('/MI')
+def food():
+    return 'this is for a3'
+
 app.run(host='0.0.0.0', port=81)
