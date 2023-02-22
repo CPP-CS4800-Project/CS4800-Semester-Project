@@ -6,4 +6,8 @@ app = Flask(__name__)
 def index():
     return 'Hello World!'
 
+@app.route('/Food')
+def food():
+    return 'I LOVE WINGS!'
+
 app.run(host='0.0.0.0', port=81)
