@@ -8,7 +8,32 @@ app = Flask(__name__)
 def members():
     return{"members": ["Member1", "Member2", "Member3"]}
 
+# Twilio account credentials
+account_sid = 'your_account_sid'
+auth_token = 'your_auth_token'
+client = Client(account_sid, auth_token)
 
+@app.route('/set_reminder', methods=['GET','POST'])
+def set_reminder():
+    phone_number = request.form['phone_number']
+    message = request.form['message']
+    remind_at = request.form['remind_at']
+    
+    # Convert remind_at to datetime object
+    remind_time = datetime.strptime(remind_at, '%Y-%m-%d %H:%M:%S')
+    
+    # Calculate delay until remind time
+    delay = (remind_time - datetime.now()).total_seconds()
+    
+    # Schedule the message using Twilio API
+    message = client.messages.create(
+        body=message,
+        from_='your_twilio_number',
+        to=phone_number,
+        send_at=datetime.now() + timedelta(seconds=delay)
+    )
+    
+    return f'Reminder set for {remind_at} to {phone_number} with message ID: {message.sid}'
 
 
 if __name__ == "__main__":
