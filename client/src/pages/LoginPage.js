@@ -32,33 +32,6 @@ const LoginPage = () => {
       };
 
   return (
-    // <div>
-    //   <h1>Log Into Your Account</h1>
-    //   <form>
-    //     <div>
-    //       <label>Email: </label>
-    //       <input
-    //         type="text"
-    //         value={email}
-    //         onChange={(e) => setEmail(e.target.value)}
-    //         id=""
-    //       />
-    //     </div>
-    //     <div>
-    //       <label>Password: </label>
-    //       <input
-    //         type="password"
-    //         value={password}
-    //         onChange={(e) => setPassword(e.target.value)}
-    //         id=""
-    //       />
-    //     </div>
-    //     <button type="button" onClick={() => logInUser()}>
-    //       Submit
-    //     </button>
-    //   </form>
-    // </div>
-    
     <div className='center'>
       <MDBContainer className="p-3 my-5 d-flex flex-column w-50">
         <div className="text-center">
@@ -74,6 +47,7 @@ const LoginPage = () => {
             type='email'
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="new-password"
           />
           <MDBInput 
             label='Password' 
@@ -81,6 +55,7 @@ const LoginPage = () => {
             type='password'
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
           />
           <p>Not a member? <a href="/register">Register</a></p>
         </div>
