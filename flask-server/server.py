@@ -1,39 +1,42 @@
-from flask import Flask, request
-import requests
 import os
+from flask import Flask, request
+from meteostat import Stations, Daily
 
 app = Flask(__name__)
 
-@app.route("/members")
-def members():
-    return{"members": ["Member1", "Member2", "Member3"]}
+# Your Nexmo API credentials
+API_KEY = os.environ.get('NEXMO_API_KEY')
+API_SECRET = os.environ.get('NEXMO_API_SECRET')
+FROM_NUMBER = os.environ.get('NEXMO_PHONE_NUMBER')
+TO_NUMBER = os.environ.get('YOUR_PHONE_NUMBER')
 
-# Replace these values with your own information
-phone_number = '16262225919'
-nexmo_api_key = '8a1430ec'
-nexmo_api_secret = 'hmM3wc4WVlbZ5Hyw'
-
-@app.route('/reminder', methods=['POST'])
-def set_reminder():
-    data = request.get_json()
-    message = data['message']
-
-    # Send the text message using the Nexmo API
-    response = requests.post(f'https://rest.nexmo.com/sms/json',
-        data={
-            'api_key': nexmo_api_key,
-            'api_secret': nexmo_api_secret,
-            'from': '19252677598',
-            'to': phone_number,
-            'text': message
-        }
-    )
-
-    # Check the response status code to see if the message was sent successfully
-    if response.status_code == 200:
-        return 'Reminder set and message sent successfully!'
+@app.route('/weather', methods=['POST'])
+def send_weather_message():
+    # Get the weather for the specified location
+    location = request.form['location']
+    stations = Stations().search(location)
+    if len(stations) > 0:
+        station = stations.fetch(1)
+        weather = Daily(station.id, start='2021-01-01', end='2021-01-02').fetch()
+        message = f"The weather in {location} today: {weather['temp'].mean()}°C"
     else:
-        return 'Error sending message.'
+        message = "No weather data available for the specified location."
+    
+    # Send the message using the Nexmo API
+    import nexmo
+    client = nexmo.Client(key=API_KEY, secret=API_SECRET)
+    response = client.send_message({
+        'from': FROM_NUMBER,
+        'to': TO_NUMBER,
+        'text': message
+    })
+
+    # Return a response message
+    if response['messages'][0]['status'] == '0':
+        return "Weather message sent successfully!"
+    else:
+        return f"Error sending weather message: {response['messages'][0]['error-text']}"
+
 
 
 if __name__ == "__main__":
