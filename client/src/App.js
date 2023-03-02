@@ -13,9 +13,7 @@ useEffect(() => {
       console.log(data)
     }
   )
-}
-
-)
+}, [])
 
   return (
     <div>
