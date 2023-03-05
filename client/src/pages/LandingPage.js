@@ -10,16 +10,38 @@ import {
   MDBContainer,
   MDBIcon,
   MDBBtn,
-  MDBCollapse
+  MDBCollapse,
+  MDBCard,
+  MDBCardHeader,
+  MDBCardBody,
+  MDBCardTitle,
+  MDBInput
 } from 'mdb-react-ui-kit';
 
 const LandingPage = () => {
   const [user, setUser] = useState('');
   const [showNav, setShowNav] = useState(false);
+  const [messageBody, setMessageBody] = useState('');
 
   const logoutUser = async() => {
     await httpClient.post("//localhost:5000/logout");
     window.location.href = "/";
+  };
+
+  const sendSMS = async () => {
+    console.log(messageBody);
+
+    try {
+      const resp = await httpClient.post("//localhost:5000/sms", {
+        "message_body": messageBody
+      });
+      console.log(resp)
+      window.location.href = "/";
+    } catch (e) {
+      if (e.response.status === 401) {
+        alert("Invalid credentials");
+      }
+    }
   };
 
   useEffect(() => {
@@ -76,10 +98,30 @@ const LandingPage = () => {
                     <h1 className='mb-3'>Logged in</h1>
                     <h4 className='mb-3'>ID: {user.id}</h4>
                     <h4 className='mb-3'>Email: {user.email}</h4>
+                    <h4 className='mb-3'>Phone Number: {user.phone_number}</h4>
                     <MDBBtn tag="a" outline size="lg" onClick={logoutUser}>
                         Log Out
                     </MDBBtn>
                 </div>
+                
+                <MDBCard alignment='center'>
+                    <MDBCardHeader>Send an sms</MDBCardHeader>
+                    <MDBCardBody>
+                        <MDBCardTitle>Special title treatment</MDBCardTitle>
+                        <MDBInput 
+                        wrapperClass='mb-4' 
+                        label='Message Body' 
+                        id='messageBody' 
+                        type='text'
+                        value={messageBody}
+                        onChange={(e) => setMessageBody(e.target.value)}
+                        autoComplete="new-password"
+                        />
+                        <MDBBtn className='me-1' type="button" onClick={() => sendSMS()}>
+                            Send SMS
+                        </MDBBtn>
+                    </MDBCardBody>
+                </MDBCard>
 
                 <p className='mt-4'>Scroll down</p>
                 <p>Scroll down</p>

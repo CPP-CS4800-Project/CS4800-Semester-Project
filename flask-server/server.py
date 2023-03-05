@@ -4,6 +4,7 @@ from flask_cors import CORS, cross_origin
 from flask_session import Session
 from config import ApplicationConfig
 from models import db, User
+import communication_forms
 
 app = Flask(__name__)
 app.config.from_object(ApplicationConfig)
@@ -26,13 +27,15 @@ def get_current_user():
     user = User.query.filter_by(id=user_id).first()
     return jsonify({
         "id": user.id,
-        "email": user.email
+        "email": user.email,
+        "phone_number": user.phone_number
     }) 
 
 @app.route("/register", methods=["POST"])
 def register_user():
     email = request.json["email"]
     password = request.json["password"]
+    phone_number = request.json["phone_number"]
 
     user_exists = User.query.filter_by(email=email).first() is not None
 
@@ -40,7 +43,7 @@ def register_user():
         return jsonify({"error": "User already exists"}), 409
 
     hashed_password = bcrypt.generate_password_hash(password)
-    new_user = User(email=email, password=hashed_password)
+    new_user = User(email=email, phone_number=phone_number, password=hashed_password)
     db.session.add(new_user)
     db.session.commit()
     
@@ -48,7 +51,8 @@ def register_user():
 
     return jsonify({
         "id": new_user.id,
-        "email": new_user.email
+        "email": new_user.email,
+        "phone_number": new_user.phone_number
     })
 
 @app.route("/login", methods=["POST"])
@@ -68,7 +72,8 @@ def login_user():
 
     return jsonify({
         "id": user.id,
-        "email": user.email
+        "email": user.email,
+        "phone_number": user.phone_number
     })
 
 @app.route("/logout", methods=["POST"])
@@ -76,9 +81,22 @@ def logout_user():
     session.pop("user_id")
     return "200"
 
-@app.route("/members")
-def members():
-    return{"members": ["Text", "Discord", "Email"]}
+@app.route("/sms", methods=["POST"])
+def sms():
+    user_id = session.get("user_id")
+    message_body = request.json["message_body"]
+
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user = User.query.filter_by(id=user_id).first()
+
+    communication_forms.send_sms(phone_number=user.phone_number, message_body=message_body)
+
+    return jsonify({
+        "phone_number": user.phone_number,
+        "message_body": message_body
+    }) 
 
 if __name__ == "__main__":
     app.run(debug=True)
